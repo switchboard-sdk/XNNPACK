@@ -7400,6 +7400,7 @@ ELSE()
     TARGET_COMPILE_DEFINITIONS(operators PRIVATE "XNN_LOG_LEVEL=0")
     TARGET_COMPILE_DEFINITIONS(mutex PRIVATE "XNN_LOG_LEVEL=0")
     TARGET_COMPILE_DEFINITIONS(memory PRIVATE "XNN_LOG_LEVEL=0")
+  ENDIF()
 ENDIF()
 IF(MSVC)
   # Even though MSVC has __restrict, it can't be used in all the same contexts as the C99 restrict keyword
