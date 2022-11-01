@@ -2842,7 +2842,7 @@ SET(ALL_NEON_MICROKERNEL_SRCS
   src/x16-transposec/gen/8x8-reuse-mov-zip-neon.c
   src/x16-transposec/gen/8x8-reuse-multi-zip-neon.c
   src/x16-transposec/gen/8x8-reuse-switch-zip-neon.c
-  src/x24-transposec/2x2-neon-tbl.c
+  src/x24-transposec/2x2-neon-tbl64.c
   src/x32-packx/x4-neon-st4.c
   src/x32-transposec/gen/2x2-multi-dec-zip-neon.c
   src/x32-transposec/gen/2x2-multi-mov-zip-neon.c
@@ -3145,7 +3145,7 @@ SET(PROD_AARCH64_NEON_MICROKERNEL_SRCS
   src/f32-vbinary/gen/vrdivc-minmax-neon-x8.c
   src/f32-vsqrt/gen/neon-sqrt-x4.c
   src/x8-lut/gen/lut-neon-tbx128x4-x64.c
-  src/x32-transposec/4x4-aarch64-tbl.c)
+  src/x32-transposec/4x4-neon-tbl128.c)
 
 SET(ALL_AARCH64_NEON_MICROKERNEL_SRCS
   src/bf16-gemm/gen/1x4c8-minmax-neonfma-zip.c
@@ -3271,8 +3271,8 @@ SET(ALL_AARCH64_NEON_MICROKERNEL_SRCS
   src/x8-lut/gen/lut-neon-tbx128x4-x32.c
   src/x8-lut/gen/lut-neon-tbx128x4-x48.c
   src/x8-lut/gen/lut-neon-tbx128x4-x64.c
-  src/x24-transposec/4x4-aarch64-tbl.c
-  src/x32-transposec/4x4-aarch64-tbl.c)
+  src/x24-transposec/4x4-neon-tbl128.c
+  src/x32-transposec/4x4-neon-tbl128.c)
 
 SET(PROD_NEONV8_MICROKERNEL_SRCS
   src/f32-qs8-vcvt/gen/vcvt-neonv8-x32.c
@@ -7899,6 +7899,11 @@ IF(XNNPACK_BUILD_TESTS)
     TARGET_LINK_LIBRARIES(slice-nd-test PRIVATE XNNPACK fp16 gtest gtest_main)
     ADD_TEST(NAME slice-nd-test COMMAND slice-nd-test)
 
+    ADD_EXECUTABLE(slice-nd-eager-test test/slice-nd-eager.cc)
+    TARGET_INCLUDE_DIRECTORIES(slice-nd-eager-test PRIVATE src test)
+    TARGET_LINK_LIBRARIES(slice-nd-eager-test PRIVATE XNNPACK fp16 gtest gtest_main)
+    ADD_TEST(NAME slice-nd-eager-test COMMAND slice-nd-eager-test)
+
     ADD_EXECUTABLE(softmax-nc-test test/softmax-nc.cc)
     TARGET_INCLUDE_DIRECTORIES(softmax-nc-test PRIVATE src test)
     TARGET_LINK_LIBRARIES(softmax-nc-test PRIVATE XNNPACK fp16 gtest gtest_main)
@@ -9387,19 +9392,19 @@ IF(XNNPACK_BUILD_TESTS)
   ADD_EXECUTABLE(x8-transpose-test test/x8-transpose.cc)
   TARGET_INCLUDE_DIRECTORIES(x8-transpose-test PRIVATE include src test)
   TARGET_LINK_LIBRARIES(x8-transpose-test PRIVATE cpuinfo pthreadpool gtest gtest_main)
-  TARGET_LINK_LIBRARIES(x8-transpose-test PRIVATE all_microkernels)
+  TARGET_LINK_LIBRARIES(x8-transpose-test PRIVATE all_microkernels microparams_init)
   ADD_TEST(NAME x8-transpose-test COMMAND x8-transpose-test)
 
   ADD_EXECUTABLE(x16-transpose-test test/x16-transpose.cc)
   TARGET_INCLUDE_DIRECTORIES(x16-transpose-test PRIVATE include src test)
   TARGET_LINK_LIBRARIES(x16-transpose-test PRIVATE cpuinfo pthreadpool gtest gtest_main)
-  TARGET_LINK_LIBRARIES(x16-transpose-test PRIVATE all_microkernels)
+  TARGET_LINK_LIBRARIES(x16-transpose-test PRIVATE all_microkernels microparams_init)
   ADD_TEST(NAME x16-transpose-test COMMAND x16-transpose-test)
 
   ADD_EXECUTABLE(x24-transpose-test test/x24-transpose.cc)
   TARGET_INCLUDE_DIRECTORIES(x24-transpose-test PRIVATE include src test)
   TARGET_LINK_LIBRARIES(x24-transpose-test PRIVATE cpuinfo pthreadpool gtest gtest_main)
-  TARGET_LINK_LIBRARIES(x24-transpose-test PRIVATE all_microkernels)
+  TARGET_LINK_LIBRARIES(x24-transpose-test PRIVATE all_microkernels microparams_init)
   ADD_TEST(NAME x24-transpose-test COMMAND x24-transpose-test)
 
   ADD_EXECUTABLE(x32-packx-test test/x32-packx.cc)
@@ -9417,7 +9422,7 @@ IF(XNNPACK_BUILD_TESTS)
   ADD_EXECUTABLE(x32-transpose-test test/x32-transpose.cc)
   TARGET_INCLUDE_DIRECTORIES(x32-transpose-test PRIVATE include src test)
   TARGET_LINK_LIBRARIES(x32-transpose-test PRIVATE cpuinfo pthreadpool gtest gtest_main)
-  TARGET_LINK_LIBRARIES(x32-transpose-test PRIVATE all_microkernels)
+  TARGET_LINK_LIBRARIES(x32-transpose-test PRIVATE all_microkernels microparams_init)
   ADD_TEST(NAME x32-transpose-test COMMAND x32-transpose-test)
 
   ADD_EXECUTABLE(x32-zip-test test/x32-zip.cc)
@@ -9429,7 +9434,7 @@ IF(XNNPACK_BUILD_TESTS)
   ADD_EXECUTABLE(x64-transpose-test test/x64-transpose.cc)
   TARGET_INCLUDE_DIRECTORIES(x64-transpose-test PRIVATE include src test)
   TARGET_LINK_LIBRARIES(x64-transpose-test PRIVATE cpuinfo fp16 pthreadpool gtest gtest_main)
-  TARGET_LINK_LIBRARIES(x64-transpose-test PRIVATE all_microkernels)
+  TARGET_LINK_LIBRARIES(x64-transpose-test PRIVATE all_microkernels microparams_init)
   ADD_TEST(NAME x64-transpose-test COMMAND x64-transpose-test)
 
   ADD_EXECUTABLE(x8-lut-test test/x8-lut.cc)
@@ -10116,7 +10121,7 @@ IF(XNNPACK_BUILD_BENCHMARKS)
   TARGET_LINK_LIBRARIES(cs16-fftr-bench PRIVATE benchmark pthreadpool)
   TARGET_LINK_LIBRARIES(cs16-fftr-bench PRIVATE all_microkernels bench-utils)
 
-  ADD_EXECUTABLE(xx-transpose-bench bench/x32-transpose.cc)
+  ADD_EXECUTABLE(xx-transpose-bench bench/xx-transpose.cc)
   TARGET_INCLUDE_DIRECTORIES(xx-transpose-bench PRIVATE . include src)
   TARGET_LINK_LIBRARIES(xx-transpose-bench PRIVATE benchmark pthreadpool)
   TARGET_LINK_LIBRARIES(xx-transpose-bench PRIVATE all_microkernels bench-utils)
@@ -10129,25 +10134,25 @@ IF(XNNPACK_BUILD_BENCHMARKS)
   ADD_EXECUTABLE(x8-transpose-bench bench/x32-transpose.cc)
   TARGET_INCLUDE_DIRECTORIES(x8-transpose-bench PRIVATE . include src)
   TARGET_LINK_LIBRARIES(x8-transpose-bench PRIVATE benchmark pthreadpool)
-  TARGET_LINK_LIBRARIES(x8-transpose-bench PRIVATE all_microkernels bench-utils)
+  TARGET_LINK_LIBRARIES(x8-transpose-bench PRIVATE all_microkernels bench-utils microparams_init)
 
   ADD_EXECUTABLE(x16-transpose-bench bench/x16-transpose.cc)
   TARGET_INCLUDE_DIRECTORIES(x16-transpose-bench PRIVATE . include src)
-  TARGET_LINK_LIBRARIES(x16-transpose-bench PRIVATE benchmark pthreadpool)
+  TARGET_LINK_LIBRARIES(x16-transpose-bench PRIVATE benchmark pthreadpool microparams_init)
   TARGET_LINK_LIBRARIES(x16-transpose-bench PRIVATE all_microkernels bench-utils)
 
   ADD_EXECUTABLE(x24-transpose-bench bench/x16-transpose.cc)
   TARGET_INCLUDE_DIRECTORIES(x24-transpose-bench PRIVATE . include src)
   TARGET_LINK_LIBRARIES(x24-transpose-bench PRIVATE benchmark pthreadpool)
-  TARGET_LINK_LIBRARIES(x24-transpose-bench PRIVATE all_microkernels bench-utils)
+  TARGET_LINK_LIBRARIES(x24-transpose-bench PRIVATE all_microkernels bench-utils microparams_init)
 
   ADD_EXECUTABLE(x32-transpose-bench bench/x32-transpose.cc)
   TARGET_INCLUDE_DIRECTORIES(x32-transpose-bench PRIVATE . include src)
   TARGET_LINK_LIBRARIES(x32-transpose-bench PRIVATE benchmark pthreadpool)
-  TARGET_LINK_LIBRARIES(x32-transpose-bench PRIVATE all_microkernels bench-utils)
+  TARGET_LINK_LIBRARIES(x32-transpose-bench PRIVATE all_microkernels bench-utils microparams_init)
 
   ADD_EXECUTABLE(x64-transpose-bench bench/x64-transpose.cc)
   TARGET_INCLUDE_DIRECTORIES(x64-transpose-bench PRIVATE . include src)
   TARGET_LINK_LIBRARIES(x64-transpose-bench PRIVATE benchmark pthreadpool)
-  TARGET_LINK_LIBRARIES(x64-transpose-bench PRIVATE all_microkernels bench-utils)
+  TARGET_LINK_LIBRARIES(x64-transpose-bench PRIVATE all_microkernels bench-utils microparams_init)
 ENDIF()

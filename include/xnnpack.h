@@ -2168,24 +2168,6 @@ enum xnn_status xnn_setup_prelu_nc_f32(
   float* output,
   pthreadpool_t threadpool);
 
-enum xnn_status xnn_create_resize_bilinear2d_nchw_f32(
-  size_t channels,
-  size_t input_pixel_stride,
-  size_t output_pixel_stride,
-  uint32_t flags,
-  xnn_operator_t* resize_op_out);
-
-enum xnn_status xnn_setup_resize_bilinear2d_nchw_f32(
-  xnn_operator_t resize_op,
-  size_t batch_size,
-  size_t input_height,
-  size_t input_width,
-  size_t output_height,
-  size_t output_width,
-  const float* input,
-  float* output,
-  pthreadpool_t threadpool);
-
 enum xnn_status xnn_create_resize_bilinear2d_nhwc_f32(
   size_t channels,
   size_t input_pixel_stride,
@@ -2422,6 +2404,24 @@ enum xnn_status xnn_setup_global_average_pooling_ncw_f32(
   float* output,
   pthreadpool_t threadpool);
 
+enum xnn_status xnn_create_resize_bilinear2d_nchw_f32(
+  size_t channels,
+  size_t input_pixel_stride,
+  size_t output_pixel_stride,
+  uint32_t flags,
+  xnn_operator_t* resize_op_out);
+
+enum xnn_status xnn_setup_resize_bilinear2d_nchw_f32(
+  xnn_operator_t resize_op,
+  size_t batch_size,
+  size_t input_height,
+  size_t input_width,
+  size_t output_height,
+  size_t output_width,
+  const float* input,
+  float* output,
+  pthreadpool_t threadpool);
+
 #endif  // XNN_NO_NCHW_OPERATORS
 
 #endif  // XNN_NO_F32_OPERATORS
@@ -2510,6 +2510,14 @@ enum xnn_status xnn_setup_depth_to_space_nhwc_x32(
   void* output,
   pthreadpool_t threadpool);
 
+enum xnn_status xnn_create_depth_to_space_nchw2nhwc_x16(
+  size_t output_channels,
+  size_t input_channel_stride,
+  size_t output_channel_stride,
+  uint32_t block_size,
+  uint32_t flags,
+  xnn_operator_t* depth_to_space_op_out);
+
 enum xnn_status xnn_create_depth_to_space_nchw2nhwc_x32(
   size_t output_channels,
   size_t input_channel_stride,
@@ -2517,6 +2525,15 @@ enum xnn_status xnn_create_depth_to_space_nchw2nhwc_x32(
   uint32_t block_size,
   uint32_t flags,
   xnn_operator_t* depth_to_space_op_out);
+
+enum xnn_status xnn_setup_depth_to_space_nchw2nhwc_x16(
+  xnn_operator_t depth_to_space_op,
+  size_t batch_size,
+  size_t input_height,
+  size_t input_width,
+  const void* input,
+  void* output,
+  pthreadpool_t threadpool);
 
 enum xnn_status xnn_setup_depth_to_space_nchw2nhwc_x32(
   xnn_operator_t depth_to_space_op,
@@ -2539,6 +2556,16 @@ enum xnn_status xnn_setup_slice_nd_x32(
   const size_t* sizes,
   const void* input,
   void* output,
+  pthreadpool_t threadpool);
+
+enum xnn_status xnn_run_slice_nd_x32(
+  size_t num_dims,
+  const size_t* input_shape,
+  const size_t* offsets,
+  const size_t* sizes,
+  const void* input,
+  void* output,
+  uint32_t flags,
   pthreadpool_t threadpool);
 
 enum xnn_status xnn_create_space_to_depth_nhwc_x32(
@@ -3126,6 +3153,24 @@ enum xnn_status xnn_setup_global_average_pooling_ncw_f16(
   xnn_operator_t global_average_pooling_op,
   size_t batch_size,
   size_t width,
+  const void* input,
+  void* output,
+  pthreadpool_t threadpool);
+
+enum xnn_status xnn_create_resize_bilinear2d_nchw_f16(
+  size_t channels,
+  size_t input_pixel_stride,
+  size_t output_pixel_stride,
+  uint32_t flags,
+  xnn_operator_t* resize_op_out);
+
+enum xnn_status xnn_setup_resize_bilinear2d_nchw_f16(
+  xnn_operator_t resize_op,
+  size_t batch_size,
+  size_t input_height,
+  size_t input_width,
+  size_t output_height,
+  size_t output_width,
   const void* input,
   void* output,
   pthreadpool_t threadpool);
@@ -4346,6 +4391,18 @@ enum xnn_status xnn_setup_convert_nc_f32_qu8(
   uint8_t* output,
   pthreadpool_t threadpool);
 
+enum xnn_status xnn_run_convert_nc_f32_qu8(
+  size_t channels,
+  size_t input_stride,
+  size_t output_stride,
+  size_t batch_size,
+  const float* input,
+  uint8_t* output,
+  float output_scale,
+  uint8_t output_zero_point,
+  uint32_t flags,
+  pthreadpool_t threadpool);
+
 enum xnn_status xnn_create_convert_nc_qs8(
   size_t channels,
   size_t input_stride,
@@ -4424,6 +4481,18 @@ enum xnn_status xnn_setup_convert_nc_qu8_f32(
   size_t batch_size,
   const uint8_t* input,
   float* output,
+  pthreadpool_t threadpool);
+
+enum xnn_status xnn_run_convert_nc_qu8_f32(
+  size_t channels,
+  size_t input_stride,
+  size_t output_stride,
+  size_t batch_size,
+  const uint8_t* input,
+  float* output,
+  float input_scale,
+  uint8_t input_zero_point,
+  uint32_t flags,
   pthreadpool_t threadpool);
 
 #endif  // XNN_NO_CVT_OPERATORS
